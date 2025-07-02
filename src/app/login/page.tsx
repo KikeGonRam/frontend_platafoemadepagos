@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/Button';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
 
@@ -16,6 +15,25 @@ export default function LoginPage() {
 
   const { login } = useAuth();
   const router = useRouter();
+
+  // Pre-fetch todas las rutas principales al cargar la página
+  useEffect(() => {
+    router.prefetch('/dashboard/admin');
+    router.prefetch('/dashboard/solicitante');
+    router.prefetch('/dashboard/aprobador');
+    router.prefetch('/dashboard/pagador');
+  }, [router]);
+
+  // Función optimizada para redirección inmediata
+  const getRedirectPath = (rol: string) => {
+    const routes = {
+      'admin_general': '/dashboard/admin',
+      'solicitante': '/dashboard/solicitante',
+      'aprobador': '/dashboard/aprobador',
+      'pagador_banca': '/dashboard/pagador'
+    };
+    return routes[rol as keyof typeof routes] || '/dashboard';
+  };
 
   const validateForm = () => {
     const newErrors = { email: '', password: '' };
@@ -43,38 +61,26 @@ export default function LoginPage() {
     
     setLoading(true);
     
-    const success = await login({ email, password });
-    
-    if (success) {
-      // Obtener el usuario del contexto después del login exitoso
-      const userData = localStorage.getItem('auth_user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        
-        // Redireccionar según el rol del usuario
-        switch (user.rol) {
-          case 'admin_general':
-            router.push('/dashboard/admin');
-            break;
-          case 'solicitante':
-            router.push('/dashboard/solicitante');
-            break;
-          case 'aprobador':
-            router.push('/dashboard/aprobador');
-            break;
-          case 'pagador_banca':
-            router.push('/dashboard/pagador');
-            break;
-          default:
-            router.push('/dashboard');
-            break;
+    try {
+      const success = await login({ email, password });
+      
+      if (success) {
+        // Obtener usuario inmediatamente del localStorage
+        const userData = localStorage.getItem('auth_user');
+        if (userData) {
+          const user = JSON.parse(userData);
+          const redirectPath = getRedirectPath(user.rol);
+          
+          // Redirección ultrarrápida usando replace
+          router.replace(redirectPath);
+          return; // Exit early para evitar setLoading
         }
-      } else {
-        router.push('/dashboard');
       }
+    } catch (error) {
+      console.error('Login error:', error);
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (

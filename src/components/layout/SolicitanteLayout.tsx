@@ -4,7 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { LogOut, Home, FileText, Plus, User, Menu, Bell } from 'lucide-react';
+import { 
+  LogOut, Home, FileText, Plus, User, Menu, Bell 
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
 
@@ -14,9 +16,36 @@ interface SolicitanteLayoutProps {
 
 export function SolicitanteLayout({ children }: SolicitanteLayoutProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const { user, logout } = useAuth();
     const pathname = usePathname();
     const router = useRouter();
+
+    // Datos de notificaciones específicas para solicitante
+    const notificationsData = [
+      { 
+        id: 1, 
+        title: 'Solicitud aprobada', 
+        message: 'Tu solicitud #SOL-2024-001 ha sido aprobada', 
+        time: 'Hace 10 minutos',
+        isRead: false
+      },
+      { 
+        id: 2, 
+        title: 'Solicitud en revisión', 
+        message: 'Tu solicitud está siendo revisada por el aprobador', 
+        time: 'Hace 2 horas',
+        isRead: false
+      },
+      { 
+        id: 3, 
+        title: 'Recordatorio', 
+        message: 'Recuerda adjuntar la factura a tu solicitud pendiente', 
+        time: 'Hace 1 día',
+        isRead: true
+      }
+    ];
 
     return (
         <div className="min-h-screen font-sans" style={{background: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)'}}>
@@ -33,18 +62,91 @@ export function SolicitanteLayout({ children }: SolicitanteLayoutProps) {
                             <Menu className="w-4 h-4 mr-2" />
                             Menú
                         </Button>
-                        <Button
+
+                        <div className="flex items-center space-x-3">
+                          <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => alert('Notificaciones')}
-                            className="bg-white/15 backdrop-blur-sm text-white border border-white/30 hover:bg-white/25 transition-all duration-300 px-6 py-3 rounded-xl font-medium"
-                        >
+                            onClick={() => setShowNotifications(!showNotifications)}
+                            className="bg-white/15 backdrop-blur-sm text-white border border-white/30 hover:bg-white/25 transition-all duration-300 px-6 py-3 rounded-xl font-medium relative"
+                          >
                             Notificaciones
                             <Bell className="w-4 h-4 ml-2" />
-                        </Button>
+                            {notificationsData.some(n => !n.isRead) && (
+                              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+                            )}
+                          </Button>
+                          
+                          {/* Botón Cerrar Sesión para pantalla completa */}
+                          <Button
+                            variant="outline"
+                            size="sm" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setShowLogoutConfirm(true);
+                            }}
+                            className="bg-white/15 backdrop-blur-sm text-white border-white/30 hover:bg-white/25 transition-all duration-300 px-6 py-3 rounded-xl font-medium hidden md:flex"
+                          >
+                            <LogOut className="w-4 h-4 mr-2" />
+                            Cerrar Sesión
+                          </Button>
+                        </div>
                     </div>
                 </div>
             </header>
+
+            {/* Panel de Notificaciones */}
+            {showNotifications && (
+              <div className="fixed right-4 top-24 w-80 bg-white rounded-xl shadow-2xl z-50 animate-fade-in">
+                <div className="p-4 border-b border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-900">Notificaciones</h3>
+                    <button
+                      onClick={() => setShowNotifications(false)}
+                      className="text-gray-400 hover:text-gray-500"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                  {notificationsData.length === 0 ? (
+                    <div className="p-6 text-center text-gray-500">
+                      No tienes notificaciones
+                    </div>
+                  ) : (
+                    <div>
+                      {notificationsData.map(notification => (
+                        <div 
+                          key={notification.id}
+                          className={`p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${notification.isRead ? '' : 'bg-blue-50'}`}
+                        >
+                          <h4 className="font-medium text-gray-900 text-sm">{notification.title}</h4>
+                          <p className="text-gray-600 text-sm mt-1">{notification.message}</p>
+                          <span className="text-gray-400 text-xs mt-2 block">{notification.time}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="p-3 text-center border-t border-gray-100">
+                  <button className="text-blue-600 text-sm font-medium hover:text-blue-800">
+                    Ver todas las notificaciones
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Click outside to close notifications */}
+            {showNotifications && (
+              <div 
+                className="fixed inset-0 z-40" 
+                onClick={() => setShowNotifications(false)}
+              />
+            )}
 
             {/* Sidebar Menu */}
             {isMenuOpen && (
@@ -123,10 +225,12 @@ export function SolicitanteLayout({ children }: SolicitanteLayoutProps) {
                             </div>
                             <div className="p-4 border-t border-gray-200 bg-gray-50">
                                 <button
-                                    onClick={() => {
-                                        logout();
-                                        setIsMenuOpen(false);
-                                        router.push('/login');
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setShowLogoutConfirm(true);
+                                      setIsMenuOpen(false);
                                     }}
                                     className="flex items-center space-x-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-all duration-200 w-full group"
                                 >
@@ -137,6 +241,59 @@ export function SolicitanteLayout({ children }: SolicitanteLayoutProps) {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Logout Confirmation Modal */}
+            {showLogoutConfirm && (
+              <div className="fixed inset-0 z-[9999] overflow-hidden flex items-center justify-center">
+                <div 
+                  className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 animate-fade-in"
+                  onClick={() => setShowLogoutConfirm(false)}
+                  aria-hidden="true"
+                />
+                <div 
+                  className="relative bg-white rounded-xl shadow-2xl p-6 w-full max-w-md m-4 z-[10000] animate-slide-up"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="modal-title"
+                >
+                  <button 
+                    className="absolute top-3 right-3 text-gray-400 hover:text-gray-500" 
+                    onClick={() => setShowLogoutConfirm(false)}
+                    aria-label="Cerrar"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  <LogOut className="h-10 w-10 text-red-500 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-gray-900 mb-3 text-center" id="modal-title">Confirmar cierre de sesión</h3>
+                  <p className="text-gray-600 mb-6 text-center">¿Estás seguro de que deseas cerrar tu sesión en la plataforma?</p>
+                  
+                  <div className="flex justify-center space-x-4">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setShowLogoutConfirm(false)}
+                      className="border-gray-300 text-gray-700 hover:bg-gray-50 px-5"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      onClick={() => {
+                        logout();
+                        setShowLogoutConfirm(false);
+                        setIsMenuOpen(false);
+                        router.push('/login');
+                      }}
+                      className="bg-red-600 hover:bg-red-700 text-white px-5"
+                    >
+                      Sí, cerrar sesión
+                    </Button>
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* Main Content */}

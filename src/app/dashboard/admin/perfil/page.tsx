@@ -27,6 +27,7 @@ export default function AdminProfilePage() {
   const [activeTab, setActiveTab] = useState('personal');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
 
   const [formData, setFormData] = useState({ nombre: '', email: '', cargo: 'Administrador General' });
 
@@ -111,6 +112,7 @@ export default function AdminProfilePage() {
 
       const response = await UsuariosService.changePassword(changePasswordData);
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setShowPasswordForm(false);
       toast.success(response.message || 'Contraseña actualizada correctamente');
     } catch (error: unknown) {
       const errorMessage = error && typeof error === 'object' && 'response' in error 
@@ -120,6 +122,11 @@ export default function AdminProfilePage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancelPasswordChange = () => {
+    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setShowPasswordForm(false);
   };
 
   const renderPersonalInfo = () => (
@@ -237,76 +244,94 @@ export default function AdminProfilePage() {
       <h2 className="text-xl font-bold text-white">Seguridad</h2>
 
       <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-        <h3 className="text-lg font-semibold text-white mb-4">
-          <Lock className="w-5 h-5 inline mr-2" />
-          Cambiar Contraseña
-        </h3>
-
-        <div className="grid grid-cols-1 gap-6">
-          <div>
-            <label className="block text-white/80 text-sm font-medium mb-2">
-              Contraseña actual
-            </label>
-            <Input
-              type="password"
-              value={passwordData.currentPassword}
-              onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
-              className="bg-white/15 border-white/20 text-white"
-              placeholder="••••••••"
-            />
-          </div>
-
-          <div>
-            <label className="block text-white/80 text-sm font-medium mb-2">
-              Nueva contraseña
-            </label>
-            <Input
-              type="password"
-              value={passwordData.newPassword}
-              onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
-              className="bg-white/15 border-white/20 text-white"
-              placeholder="••••••••"
-            />
-          </div>
-
-          <div>
-            <label className="block text-white/80 text-sm font-medium mb-2">
-              Confirmar nueva contraseña
-            </label>
-            <Input
-              type="password"
-              value={passwordData.confirmPassword}
-              onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
-              className="bg-white/15 border-white/20 text-white"
-              placeholder="••••••••"
-            />
-          </div>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-white">
+            <Lock className="w-5 h-5 inline mr-2" />
+            Contraseña
+          </h3>
+          {!showPasswordForm && (
+            <Button
+              onClick={() => setShowPasswordForm(true)}
+              className="bg-blue-600 text-white hover:bg-blue-700 shadow-lg border-0"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Cambiar Contraseña
+            </Button>
+          )}
         </div>
 
-        <div className="mt-6">
-          <Button
-            onClick={handlePasswordUpdate}
-            disabled={loading || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
-            className="bg-blue-600 text-white hover:bg-blue-700 shadow-lg border-0"
-          >
-            {loading ? 'Actualizando...' : 'Cambiar Contraseña'}
-          </Button>
-        </div>
-      </div>
-      
-      <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-        <h3 className="text-lg font-semibold text-white mb-4">Sesiones Activas</h3>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
-            <div>
-              <p className="text-white font-medium">Sesión actual</p>
-              <p className="text-white/70 text-sm">Windows • Chrome • Bogotá, Colombia</p>
+        {!showPasswordForm ? (
+          <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+            <p className="text-white/70">
+              Tu contraseña está protegida. Haz clic en "Cambiar Contraseña" para actualizarla.
+            </p>
+            <p className="text-white/60 text-sm mt-2">
+              Última actualización: Hace 30 días
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">
+                  Contraseña actual
+                </label>
+                <Input
+                  type="password"
+                  value={passwordData.currentPassword}
+                  onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
+                  className="bg-white/15 border-white/20 text-white"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">
+                  Nueva contraseña
+                </label>
+                <Input
+                  type="password"
+                  value={passwordData.newPassword}
+                  onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+                  className="bg-white/15 border-white/20 text-white"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              <div>
+                <label className="block text-white/80 text-sm font-medium mb-2">
+                  Confirmar nueva contraseña
+                </label>
+                <Input
+                  type="password"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
+                  className="bg-white/15 border-white/20 text-white"
+                  placeholder="••••••••"
+                />
+              </div>
             </div>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              Activa
-            </span>
+
+            <div className="flex justify-end space-x-4 pt-4 border-t border-white/20">
+              <Button
+                variant="outline"
+                onClick={handleCancelPasswordChange}
+                className="bg-gray-600 text-white border-gray-500 hover:bg-gray-700"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+              <Button
+                onClick={handlePasswordUpdate}
+                disabled={loading || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
+                className="bg-blue-600 text-white hover:bg-blue-700 shadow-lg border-0"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {loading ? 'Actualizando...' : 'Guardar Cambios'}
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

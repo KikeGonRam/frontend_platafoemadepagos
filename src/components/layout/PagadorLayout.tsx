@@ -4,13 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { LogOut } from 'lucide-react';
-import { Home } from 'lucide-react';
-import { FileText } from 'lucide-react';
-import { CreditCard } from 'lucide-react';
-import { Menu } from 'lucide-react';
-import { User } from 'lucide-react';
-import { Bell } from 'lucide-react';
+import { 
+  LogOut, Home, FileText, CreditCard, Menu, User, Bell 
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
 
@@ -127,6 +123,14 @@ export function PagadorLayout({ children }: PagadorLayoutProps) {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Click outside to close notifications */}
+      {showNotifications && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setShowNotifications(false)}
+        />
       )}
 
       {/* Sidebar Menu */}

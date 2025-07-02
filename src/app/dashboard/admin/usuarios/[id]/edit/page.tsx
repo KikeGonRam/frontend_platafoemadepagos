@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Save, AlertCircle, Lock } from 'lucide-react';
+import { Save, AlertCircle, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { UsuariosService } from '@/services/usuarios.service';
 import { User as UserType } from '@/types';
@@ -23,6 +23,7 @@ export default function EditUsuarioPage() {
         rol: '',
         password: ''
     });
+    const [showSaveModal, setShowSaveModal] = useState(false);
 
     useEffect(() => {
         if (params.id) {
@@ -53,6 +54,8 @@ export default function EditUsuarioPage() {
         if (!usuario) return;
 
         setSaving(true);
+        setShowSaveModal(true);
+        
         try {
         const dataToUpdate = {
             nombre: formData.nombre,
@@ -62,10 +65,16 @@ export default function EditUsuarioPage() {
         };
         
         await UsuariosService.update(usuario.id_usuario, dataToUpdate);
+        
+        // Simular un pequeño delay para mostrar el modal
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        setShowSaveModal(false);
         toast.success('Usuario actualizado exitosamente');
-        router.push(`/dashboard/admin/usuarios/${usuario.id_usuario}`);
+        router.push(`/dashboard/admin/usuarios`);
         } catch (error) {
         console.error('Error updating usuario:', error);
+        setShowSaveModal(false);
         toast.error('Error al actualizar el usuario');
         } finally {
         setSaving(false);
@@ -97,13 +106,6 @@ export default function EditUsuarioPage() {
             <div className="text-white text-center">
             <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-400" />
             <p className="text-lg">{error}</p>
-            <Button
-                variant="outline"
-                className="mt-4 text-white border-white/30 hover:bg-white/10"
-                onClick={() => router.push('/dashboard/admin/usuarios')}
-            >
-                Volver a la lista
-            </Button>
             </div>
         </div>
         );
@@ -116,15 +118,6 @@ export default function EditUsuarioPage() {
                     {/* Header */}
                     <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-8 border border-white/20">
                     <div className="flex items-center space-x-4">
-                        <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => router.push(`/dashboard/admin/usuarios/${params.id}`)}
-                        className="text-white border-white/30 hover:bg-white/10"
-                        >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Volver
-                        </Button>
                         <div>
                         <h1 className="text-2xl font-bold text-white">Editar Usuario</h1>
                         <p className="text-white/80">Modificar información del usuario</p>
@@ -147,8 +140,12 @@ export default function EditUsuarioPage() {
                             value={formData.nombre}
                             onChange={handleInputChange}
                             required
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white font-medium"
                             placeholder="Ingrese el nombre completo"
+                            style={{
+                                color: '#1f2937',
+                                backgroundColor: '#ffffff'
+                            }}
                             />
                         </div>
 
@@ -163,8 +160,12 @@ export default function EditUsuarioPage() {
                             value={formData.email}
                             onChange={handleInputChange}
                             required
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white font-medium"
                             placeholder="Ingrese el correo electrónico"
+                            style={{
+                                color: '#1f2937',
+                                backgroundColor: '#ffffff'
+                            }}
                             />
                         </div>
 
@@ -174,14 +175,21 @@ export default function EditUsuarioPage() {
                             <Lock className="w-4 h-4 inline mr-2" />
                             Contraseña (dejar vacío para no cambiar)
                             </label>
+                            <div className="flex items-center border border-gray-300 rounded-lg bg-white">
+                            <Lock className="w-5 h-5 text-gray-400 ml-3" />
                             <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Nueva contraseña (opcional)"
+                                type="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleInputChange}
+                                className="w-full px-4 py-3 rounded-lg border-0 focus:ring-2 focus:ring-blue-500 text-black bg-white font-medium"
+                                placeholder="Nueva contraseña (opcional)"
+                                style={{
+                                    color: '#1f2937',
+                                    backgroundColor: '#ffffff'
+                                }}
                             />
+                            </div>
                             <p className="text-white/60 text-xs mt-1">Solo introduzca una contraseña si desea cambiarla</p>
                         </div>
 
@@ -195,32 +203,18 @@ export default function EditUsuarioPage() {
                             value={formData.rol}
                             onChange={handleInputChange}
                             required
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black bg-white font-medium"
+                            style={{
+                                color: '#1f2937',
+                                backgroundColor: '#ffffff'
+                            }}
                             >
-                            <option value="">Seleccionar rol</option>
-                            <option value="admin_general">Administrador General</option>
-                            <option value="solicitante">Solicitante</option>
-                            <option value="aprobador">Aprobador</option>
-                            <option value="pagador_banca">Pagador</option>
+                            <option value="" style={{color: '#6b7280', backgroundColor: '#ffffff'}}>Seleccionar rol</option>
+                            <option value="admin_general" style={{color: '#1f2937', backgroundColor: '#ffffff', fontWeight: '500'}}>Administrador General</option>
+                            <option value="solicitante" style={{color: '#1f2937', backgroundColor: '#ffffff', fontWeight: '500'}}>Solicitante</option>
+                            <option value="aprobador" style={{color: '#1f2937', backgroundColor: '#ffffff', fontWeight: '500'}}>Aprobador</option>
+                            <option value="pagador_banca" style={{color: '#1f2937', backgroundColor: '#ffffff', fontWeight: '500'}}>Pagador</option>
                             </select>
-                        </div>
-
-                        {/* Password */}
-                        <div>
-                            <label className="block text-white font-medium mb-2">
-                            Contraseña
-                            </label>
-                            <div className="flex items-center border border-gray-300 rounded-lg">
-                            <Lock className="w-5 h-5 text-gray-400 ml-3" />
-                            <input
-                                type="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-3 rounded-lg border-0 focus:ring-2 focus:ring-blue-500"
-                                placeholder="Ingrese una nueva contraseña (opcional)"
-                            />
-                            </div>
                         </div>
                         </div>
 
@@ -230,7 +224,7 @@ export default function EditUsuarioPage() {
                             type="button"
                             variant="outline"
                             className="text-white border-white/30 hover:bg-white/10"
-                            onClick={() => router.push(`/dashboard/admin/usuarios/${params.id}`)}
+                            onClick={() => router.push(`/dashboard/admin/usuarios`)}
                         >
                             Cancelar
                         </Button>
@@ -255,6 +249,32 @@ export default function EditUsuarioPage() {
                         </div>
                     </form>
                     </div>
+
+                    {/* Modal de guardando cambios */}
+                    {showSaveModal && (
+                        <div className="fixed inset-0 z-50 overflow-y-auto">
+                            <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                                <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"></div>
+                                <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full">
+                                    <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                        <div className="flex items-center justify-center">
+                                            <div className="flex items-center space-x-4">
+                                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                                <div>
+                                                    <h3 className="text-lg font-medium text-gray-900">
+                                                        Guardando cambios...
+                                                    </h3>
+                                                    <p className="text-sm text-gray-500">
+                                                        Por favor espere mientras actualizamos la información del usuario.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </AdminLayout>
         </ProtectedRoute>

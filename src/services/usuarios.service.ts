@@ -50,6 +50,12 @@ export class UsuariosService {
     await api.delete(`/usuarios/${id}`);
   }
 
+  // Método para bloquear/desbloquear usuario
+  static async updateBlockStatus(id: number, blocked: boolean): Promise<User> {
+    const response = await api.put<User>(`/usuarios/${id}/block-status`, { bloqueado: blocked });
+    return response.data;
+  }
+
   // Métodos para perfil propio
   static async updateProfile(profileData: UpdateProfileData): Promise<{ message: string; user: User }> {
     const response = await api.put<{ message: string; user: User }>('/usuarios/profile/update', profileData);

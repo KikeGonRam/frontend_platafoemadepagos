@@ -5,11 +5,12 @@ export interface User {
   nombre: string;
   email: string;
   rol: UserRole;
+  activo: boolean;
+  creado_en: string;
+  bloqueado?: boolean;  // Primary field
+  blocked?: boolean;    // Alternative field name
+  is_blocked?: boolean; // Another alternative
   intentos_fallidos: number;
-  bloqueado: boolean;
-  bloqueo_temporal_fin?: string;
-  bloqueo_temporal_activado: boolean;
-  created_at: string;
   updated_at: string;
 }
 
@@ -68,4 +69,5 @@ export interface ApiError {
     field: string;
     message: string;
   }>;
+}
 }
