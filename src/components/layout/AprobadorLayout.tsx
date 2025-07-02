@@ -4,13 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
-import { LogOut } from 'lucide-react';
-import { Home } from 'lucide-react';
-import { FileText } from 'lucide-react';
-import { CheckCircle } from 'lucide-react';
-import { Menu } from 'lucide-react';
-import { User } from 'lucide-react';
-import { Bell } from 'lucide-react';
+import { 
+  LogOut, Home, FileText, CheckCircle, Menu, User, Bell 
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
 
@@ -18,12 +14,38 @@ interface AprobadorLayoutProps {
     children: React.ReactNode;
 }
 
-    export function AprobadorLayout({ children }: AprobadorLayoutProps) {
+export function AprobadorLayout({ children }: AprobadorLayoutProps) {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [showNotifications, setShowNotifications] = useState(false);
     const { user, logout } = useAuth();
     const pathname = usePathname();
     const router = useRouter();
+
+    // Datos de notificaciones específicas para aprobador
+    const notificationsData = [
+      { 
+        id: 1, 
+        title: 'Nueva solicitud para aprobar', 
+        message: 'Tienes una nueva solicitud pendiente de aprobación', 
+        time: 'Hace 2 minutos',
+        isRead: false
+      },
+      { 
+        id: 2, 
+        title: 'Solicitud urgente', 
+        message: 'Solicitud marcada como urgente requiere tu atención', 
+        time: 'Hace 1 hora',
+        isRead: false
+      },
+      { 
+        id: 3, 
+        title: 'Recordatorio', 
+        message: 'Tienes 3 solicitudes pendientes de revisión', 
+        time: 'Hace 3 horas',
+        isRead: true
+      }
+    ];
 
     return (
         <div className="min-h-screen font-sans" style={{background: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)'}}>
@@ -45,26 +67,14 @@ interface AprobadorLayoutProps {
                   <Button
                     variant="outline"
                     size="sm" 
-                    onClick={() => alert('Notificaciones')}
-                    className="bg-white/15 backdrop-blur-sm text-white border border-white/30 hover:bg-white/25 transition-all duration-300 px-6 py-3 rounded-xl font-medium"
+                    onClick={() => setShowNotifications(!showNotifications)}
+                    className="bg-white/15 backdrop-blur-sm text-white border border-white/30 hover:bg-white/25 transition-all duration-300 px-6 py-3 rounded-xl font-medium relative"
                   >
                     Notificaciones
                     <Bell className="w-4 h-4 ml-2" />
-                  </Button>
-                  
-                  {/* Botón Cerrar Sesión para pantalla completa */}
-                  <Button
-                    variant="outline"
-                    size="sm" 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setShowLogoutConfirm(true);
-                    }}
-                    className="bg-white/15 backdrop-blur-sm text-white border-white/30 hover:bg-white/25 transition-all duration-300 px-6 py-3 rounded-xl font-medium hidden md:flex"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Cerrar Sesión
+                    {notificationsData.some(n => !n.isRead) && (
+                      <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full"></span>
+                    )}
                   </Button>
                 </div>
             </div>
@@ -168,6 +178,58 @@ interface AprobadorLayoutProps {
             </div>
         )}
 
+        {/* Panel de Notificaciones */}
+        {showNotifications && (
+          <div className="fixed right-4 top-24 w-80 bg-white rounded-xl shadow-2xl z-50 animate-fade-in">
+            <div className="p-4 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-gray-900">Notificaciones</h3>
+                <button
+                  onClick={() => setShowNotifications(false)}
+                  className="text-gray-400 hover:text-gray-500"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div className="max-h-96 overflow-y-auto">
+              {notificationsData.length === 0 ? (
+                <div className="p-6 text-center text-gray-500">
+                  No tienes notificaciones
+                </div>
+              ) : (
+                <div>
+                  {notificationsData.map(notification => (
+                    <div 
+                      key={notification.id}
+                      className={`p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${notification.isRead ? '' : 'bg-blue-50'}`}
+                    >
+                      <h4 className="font-medium text-gray-900 text-sm">{notification.title}</h4>
+                      <p className="text-gray-600 text-sm mt-1">{notification.message}</p>
+                      <span className="text-gray-400 text-xs mt-2 block">{notification.time}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="p-3 text-center border-t border-gray-100">
+              <button className="text-blue-600 text-sm font-medium hover:text-blue-800">
+                Ver todas las notificaciones
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Click outside to close notifications */}
+        {showNotifications && (
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setShowNotifications(false)}
+          />
+        )}
+
         {/* Main Content */}
         <main className="flex-1">
             {children}
@@ -211,6 +273,21 @@ interface AprobadorLayoutProps {
                 size="sm" 
                 onClick={() => {
                   logout();
+                  setShowLogoutConfirm(false);
+                  setIsMenuOpen(false);
+                  router.push('/login');
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white px-5"
+              >
+                Sí, cerrar sesión
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+        </div>
+    );
+    }
                   setShowLogoutConfirm(false);
                   setIsMenuOpen(false);
                   router.push('/login');
