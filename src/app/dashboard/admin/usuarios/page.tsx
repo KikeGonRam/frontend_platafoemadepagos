@@ -369,8 +369,18 @@ export default function UsuariosPage() {
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                onClick={() => router.push(`/dashboard/admin/usuarios/${usuario.id_usuario}/edit`)}
-                                className="text-blue-600 hover:bg-blue-900"
+                                onClick={() => router.push(`http://192.168.1.89:3000/dashboard/admin/usuarios/${usuario.id_usuario}`)}
+                                className="text-green-600 hover:bg-green-50"
+                                title="Ver detalle del usuario"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => router.push(`http://192.168.1.89:3000/dashboard/admin/usuarios/${usuario.id_usuario}/edit`)}
+                                className="text-blue-600 hover:bg-blue-50"
+                                title="Editar usuario"
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
@@ -378,7 +388,8 @@ export default function UsuariosPage() {
                                 variant="outline" 
                                 size="sm"
                                 onClick={() => handleDelete(usuario)}
-                                className="text-red-600 hover:bg-red-500"
+                                className="text-red-600 hover:bg-red-50"
+                                title="Eliminar usuario"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>

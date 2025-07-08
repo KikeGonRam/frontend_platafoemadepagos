@@ -48,6 +48,63 @@ export class UsuariosService {
     return response.data;
   }
 
+  // Método específico para actualizar solo datos básicos del usuario (con contraseña obligatoria)
+  static async updateUserData(id: number, userData: { nombre: string; email: string; rol: string; password: string }): Promise<User> {
+    const response = await api.put<User>(`/usuarios/${id}`, userData);
+    return response.data;
+  }
+
+  // Método específico para cambiar solo el estado de bloqueo preservando todos los datos
+  static async updateBlockStatus(id: number, bloqueado: boolean): Promise<User> {
+    console.log('🔧 updateBlockStatus iniciado');
+    console.log('  - ID:', id);
+    console.log('  - Nuevo estado bloqueado:', bloqueado);
+    
+    try {
+      // Primero obtener los datos actuales del usuario
+      console.log('📥 Obteniendo datos actuales del usuario...');
+      const currentUser = await this.getById(id);
+      console.log('  - Usuario actual:', {
+        id: currentUser.id_usuario,
+        nombre: currentUser.nombre,
+        email: currentUser.email,
+        rol: currentUser.rol,
+        bloqueado: currentUser.bloqueado
+      });
+      
+      // Crear objeto con todos los datos existentes + nuevo estado de bloqueo
+      const preservedData = {
+        nombre: currentUser.nombre,
+        email: currentUser.email,
+        rol: currentUser.rol,
+        bloqueado: bloqueado
+        // NO incluir password para preservarla en el backend
+      };
+      
+      console.log('📤 Enviando datos al servidor:', preservedData);
+      
+      const response = await api.put<User>(`/usuarios/${id}`, preservedData);
+      
+      console.log('📨 Respuesta completa del servidor:', response.data);
+      console.log('  - Estado bloqueado en respuesta:', response.data.bloqueado);
+      
+      // Validar que el servidor procesó el cambio correctamente
+      if (response.data.bloqueado !== bloqueado) {
+        console.error('❌ ALERTA: El servidor no guardó el estado de bloqueo correctamente');
+        console.error('  - Enviado:', bloqueado);
+        console.error('  - Recibido:', response.data.bloqueado);
+      } else {
+        console.log('✅ Servidor confirmó el cambio de estado correctamente');
+      }
+      
+      return response.data;
+      
+    } catch (error) {
+      console.error('❌ Error en updateBlockStatus:', error);
+      throw error;
+    }
+  }
+
   static async delete(id: number): Promise<void> {
     await api.delete(`/usuarios/${id}`);
   }
